@@ -10,6 +10,10 @@ class SupabaseDB:
         key = st.secrets["SUPABASE_KEY"]
         self.client: Client = create_client(url, key)
 
+    # ---------- Session ----------
+    def set_session(self, access_token: str, refresh_token: str):
+        self.client.auth.set_session(access_token, refresh_token)
+
     # ---------- Auth ----------
     def sign_up(self, email: str, password: str):
         return self.client.auth.sign_up({"email": email, "password": password})

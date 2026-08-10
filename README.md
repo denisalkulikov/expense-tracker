@@ -2,8 +2,8 @@
 
 Fullstack-приложение для учёта личных расходов с авторизацией, визуализацией и бюджетированием. Работает в браузере и на телефоне.
 
-![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.40%2B-ff4b4b)
+![Python](https://img.shields.io/badge/Python-3.13%2B-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.61%2B-ff4b4b)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e)
 
 ---
