@@ -4,7 +4,7 @@ import plotly.express as px
 from datetime import datetime
 from database import SupabaseDB
 
-st.set_page_config(page_title="Expense Tracker", layout="wide")
+st.set_page_config(page_title="Учёт расходов", layout="wide")
 
 # ---------- Init DB ----------
 if "db" not in st.session_state:
@@ -31,15 +31,15 @@ if not st.session_state.authenticated:
 
 # ==================== AUTH PAGE ====================
 if not st.session_state.authenticated:
-    st.title("🔐 Expense Tracker")
+    st.title("🔐 Учёт расходов")
 
-    tab1, tab2 = st.tabs(["Login", "Register"])
+    tab1, tab2 = st.tabs(["Войти", "Регистрация"])
 
     with tab1:
         with st.form("login"):
             email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
-            if st.form_submit_button("Login"):
+            password = st.text_input("Пароль", type="password")
+            if st.form_submit_button("Войти"):
                 try:
                     resp = db.sign_in(email, password)
                     if resp.session:
@@ -47,27 +47,27 @@ if not st.session_state.authenticated:
                         st.session_state.refresh_token = resp.session.refresh_token
                         st.session_state.authenticated = True
                         st.session_state.user_email = email
-                        st.success("Welcome back!")
+                        st.success("С возвращением!")
                         st.rerun()
                 except Exception as e:
-                    st.error(f"Login failed: {e}")
+                    st.error(f"Ошибка входа: {e}")
 
     with tab2:
         with st.form("register"):
             email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
-            if st.form_submit_button("Create account"):
+            password = st.text_input("Пароль", type="password")
+            if st.form_submit_button("Создать аккаунт"):
                 try:
                     db.sign_up(email, password)
-                    st.success("Account created! You can log in now.")
+                    st.success("Аккаунт создан! ВЫ можете войти.")
                 except Exception as e:
-                    st.error(f"Registration failed: {e}")
+                    st.error(f"Регистрация не удалась: {e}")
 
     st.stop()
 
 # ==================== APP ====================
 st.sidebar.header(f"👤 {st.session_state.user_email}")
-if st.sidebar.button("Logout"):
+if st.sidebar.button("Выйти"):
     db.sign_out()
     for key in list(st.session_state.keys()):
         del st.session_state[key]
@@ -75,44 +75,44 @@ if st.sidebar.button("Logout"):
 
 # ---------- Sidebar: Add + Budget ----------
 with st.sidebar:
-    st.header("➕ Add Expense")
+    st.header("➕ Добавить расход")
     with st.form("add_form"):
-        desc = st.selectbox("Description", [
+        desc = st.selectbox("Описание", [
             "Английский", "Водоснабжение", "Газ", "Гимнастика", "Домофон",
             "ЕИРЦ", "Занимательный русский", "Интернет", "Капитальный ремонт", "Квартплата",
             "Логика", "Отопление", "Подготовка", "Садик", "Экострой", "Электроэнергия"
         ])
-        amount = st.number_input("Amount", min_value=0.01, step=0.01)
-        category = st.selectbox("Category", ["Интернет", "Квартплата", "Образование"])
-        location = st.selectbox("Location", ["Кирова", "Юбилейная", "Карла Маркса", "Лицей", "Гимнастика"])
-        expense_date = st.date_input("Date", value=datetime.now().date())
-        submitted = st.form_submit_button("Add")
+        amount = st.number_input("Сумма", min_value=0.01, step=0.01)
+        category = st.selectbox("Категория", ["Интернет", "Квартплата", "Образование"])
+        location = st.selectbox("Локация", ["Кирова", "Юбилейная", "Карла Маркса", "Лицей", "Гимнастика"])
+        expense_date = st.date_input("Дата", value=datetime.now().date())
+        submitted = st.form_submit_button("Добавить")
         if submitted and desc and location:
             try:
                 db.add_expense(desc, amount, category, location, expense_date=expense_date)
-                st.success("Added!")
+                st.success("Добавлено!")
                 st.rerun()
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Ошибка: {e}")
 
     st.divider()
-    st.header("💰 Budget")
+    st.header("💰 Бюджет")
     cm, cy = datetime.now().month, datetime.now().year
-    b_val = st.number_input("Monthly budget", min_value=0.0, step=10.0, value=0.0)
-    if st.button("Set Budget"):
+    b_val = st.number_input("Месячный бюджет", min_value=0.0, step=10.0, value=0.0)
+    if st.button("Установить бюджет"):
         try:
             db.set_budget(cm, cy, b_val)
-            st.success("Saved!")
+            st.success("Сохранено!")
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"Ошибка: {e}")
 
 # ---------- Main Dashboard ----------
-st.title("💰 Expense Tracker")
+st.title("💰 Учёт расходов")
 
 try:
     expenses = db.get_expenses()
 except Exception as e:
-    st.error(f"Failed to load: {e}")
+    st.error(f"Ошибка загрузки: {e}")
     expenses = []
 
 df = pd.DataFrame(expenses) if expenses else pd.DataFrame()
@@ -123,10 +123,10 @@ if not df.empty:
     budget_val = budget["amount"] if budget else 0
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total", f"₽{summary['total']:,.2f}")
-    c2.metric("Transactions", summary["count"])
-    c3.metric("Categories", len(summary["by_category"]))
-    c4.metric("Locations", len(summary["by_location"]))
+    c1.metric("Всего расходов", f"₽{summary['total']:,.2f}")
+    c2.metric("Транзакций", summary["count"])
+    c3.metric("Категорий", len(summary["by_category"]))
+    c4.metric("Локаций", len(summary["by_location"]))
 
     if budget_val > 0:
         remaining = budget_val - summary["total"]
@@ -136,24 +136,24 @@ if not df.empty:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("By Category")
+        st.subheader("По категориям")
         cat_df = pd.DataFrame([{"cat": k, "amount": v} for k, v in summary["by_category"].items()])
         st.plotly_chart(px.pie(cat_df, values="amount", names="cat", hole=0.4), width='stretch')
 
     with col2:
-        st.subheader("By Location")
+        st.subheader("По локациям")
         loc_df = pd.DataFrame([{"loc": k, "amount": v} for k, v in summary["by_location"].items()])
         st.plotly_chart(px.bar(loc_df, x="loc", y="amount"), width='stretch')
 
-    st.subheader("Trend")
+    st.subheader("Динамика")
     df["date"] = pd.to_datetime(df["date"])
     daily = df.groupby("date")["amount"].sum().reset_index()
     st.plotly_chart(px.line(daily, x="date", y="amount", markers=True), width='stretch')
 
-    st.subheader("History")
+    st.subheader("История расходов")
     st.dataframe(df[["date", "description", "amount", "category", "location"]].head(50), width='stretch')
 
-    st.subheader("Manage")
+    st.subheader("Управление")
     for _, row in df.head(10).iterrows():
         c1, c2, c3, c4, c5, c6 = st.columns([2, 2, 1.5, 1.5, 1.5, 1])
         c1.write(str(row["date"])[:10])
@@ -168,4 +168,4 @@ if not df.empty:
             except Exception as e:
                 st.error(f"Error: {e}")
 else:
-    st.info("No expenses yet. Add your first one in the sidebar!")
+    st.info("Ещё нет расходов. Добавьте первый расход в боковом меню!")
