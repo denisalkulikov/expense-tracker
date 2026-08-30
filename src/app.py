@@ -145,16 +145,55 @@ if not df.empty:
         loc_df = pd.DataFrame([{"loc": k, "amount": v} for k, v in summary["by_location"].items()])
         st.plotly_chart(px.bar(loc_df, x="loc", y="amount"), width='stretch')
 
-    st.subheader("Динамика")
+    st.subheader("Динамика по месяцам")
+
     df["date"] = pd.to_datetime(df["date"])
-    daily = df.groupby("date")["amount"].sum().reset_index()
-    st.plotly_chart(px.line(daily, x="date", y="amount", markers=True), width='stretch')
+
+    months_ru = {
+        1: "Янв", 2: "Фев", 3: "Мар", 4: "Апр", 5: "Май", 6: "Июн",
+        7: "Июл", 8: "Авг", 9: "Сен", 10: "Окт", 11: "Ноя", 12: "Дек"
+    }
+
+    monthly = (
+        df.groupby([df["date"].dt.year.rename("year"), df["date"].dt.month.rename("month")])["amount"]
+        .sum()
+        .reset_index()
+        .sort_values(["year", "month"])
+    )
+
+    # Если все данные за один год — показываем только месяц, иначе месяц + год
+    if monthly["year"].nunique() == 1:
+        monthly["month_label"] = monthly["month"].map(months_ru)
+    else:
+        monthly["month_label"] = monthly["month"].map(months_ru) + " " + monthly["year"].astype(str)
+
+    fig = px.bar(
+        monthly,
+        x="month_label",
+        y="amount",
+        text=monthly["amount"].round(2),
+        labels={"month_label": "Месяц", "amount": "Сумма (₽)"}
+    )
+    fig.update_traces(texttemplate='%{text:.2f} ₽', textposition='outside')
+    fig.update_layout(xaxis_tickangle=-45)
+
+    st.plotly_chart(fig, width='stretch')
 
     st.subheader("История расходов")
-    st.dataframe(df[["date", "description", "amount", "category", "location"]].head(50), width='stretch')
+    st.dataframe(df[["date", "description", "amount", "category", "location"]],
+                 width='stretch', height=400)
 
     st.subheader("Управление")
-    for _, row in df.head(10).iterrows():
+
+    items_per_page = 10
+    total_pages = max(1, (len(df) + items_per_page - 1) // items_per_page)
+    page = st.number_input("Страница", min_value=1, max_value=total_pages, value=1, step=1)
+
+    start = (page - 1) * items_per_page
+    end = start + items_per_page
+    page_df = df.iloc[start:end]
+
+    for _, row in page_df.iterrows():
         c1, c2, c3, c4, c5, c6 = st.columns([2, 2, 1.5, 1.5, 1.5, 1])
         c1.write(str(row["date"])[:10])
         c2.write(row["description"])
@@ -166,6 +205,6 @@ if not df.empty:
                 db.delete_expense(row["id"])
                 st.rerun()
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Ошибка: {e}")
 else:
     st.info("Ещё нет расходов. Добавьте первый расход в боковом меню!")
