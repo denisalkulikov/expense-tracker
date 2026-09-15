@@ -158,24 +158,29 @@ if not df.empty:
         df.groupby([df["date"].dt.year.rename("year"), df["date"].dt.month.rename("month")])["amount"]
         .sum()
         .reset_index()
-        .sort_values(["year", "month"])
     )
 
-    # Если все данные за один год — показываем только месяц, иначе месяц + год
-    if monthly["year"].nunique() == 1:
-        monthly["month_label"] = monthly["month"].map(months_ru)
-    else:
-        monthly["month_label"] = monthly["month"].map(months_ru) + " " + monthly["year"].astype(str)
+    monthly["month_label"] = monthly["month"].map(months_ru)
+    monthly["year_str"] = monthly["year"].astype(str)
 
     fig = px.bar(
         monthly,
         x="month_label",
         y="amount",
+        color="year_str",
+        barmode="group",
         text=monthly["amount"].round(2),
-        labels={"month_label": "Месяц", "amount": "Сумма (₽)"}
+        labels={"month_label": "Месяц", "amount": "Сумма (₽)", "year_str": "Год"},
+        category_orders={"month_label": ["Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+                                         "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]}
     )
+
     fig.update_traces(texttemplate='%{text:.2f} ₽', textposition='outside')
-    fig.update_layout(xaxis_tickangle=-45)
+    fig.update_layout(
+        xaxis_tickangle=0,
+        legend_title_text="Год",
+        height=450
+    )
 
     st.plotly_chart(fig, width='stretch')
 
