@@ -12,3 +12,17 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+# Добавляем фильтр предупреждений
+filterwarnings = [
+    "ignore:The 'timeout' parameter is deprecated:DeprecationWarning",
+    "ignore:The 'verify' parameter is deprecated:DeprecationWarning",
+]
+
+[dependency-groups]
+dev = [
+    "python-dotenv>=1.2.3",
+]

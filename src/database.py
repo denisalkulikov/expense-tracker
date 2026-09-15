@@ -5,12 +5,17 @@ import streamlit as st
 
 
 class SupabaseDB:
-    def __init__(self):
-        url = st.secrets["SUPABASE_URL"]
-        key = st.secrets["SUPABASE_KEY"]
-        self.client: Client = create_client(url, key)
+    def __init__(self, url: str = None, key: str = None):
+        # Для тестов: принимаем url/key напрямую
+        # Для Streamlit: берем из st.secrets
+        if url and key:
+            self.client: Client = create_client(url, key)
+        else:
+            self.client: Client = create_client(
+                st.secrets["SUPABASE_URL"],
+                st.secrets["SUPABASE_KEY"]
+            )
 
-    # ---------- Session ----------
     def set_session(self, access_token: str, refresh_token: str):
         self.client.auth.set_session(access_token, refresh_token)
 
