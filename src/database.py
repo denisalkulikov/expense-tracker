@@ -107,7 +107,12 @@ class SupabaseDB:
             "amount": amount,
             "user_id": str(user.user.id),
         }
-        return self.client.table("budgets").upsert(data).execute().data
+        return (
+            self.client.table("budgets")
+            .upsert(data, on_conflict="month,year,user_id")
+            .execute()
+            .data
+        )
 
     def get_budget(self, month: int, year: int) -> Optional[dict]:
         user = self.get_user()
